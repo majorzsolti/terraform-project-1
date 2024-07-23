@@ -281,6 +281,11 @@ resource "aws_eip" "one" {
   #Here we want the whole object, not the ID
   depends_on = [aws_internet_gateway.prod-gateway] 
 }
+
+output "server_public_ip" {
+  value = aws_eip.one.public_ip
+}
+
 # this require the internet gateway. And here terraform cannot really figure it out. 
 # On the website it says: 
 # "EIP may require IGW to exist prior to association. Use depends_on to set an explicit dependency on the IGW.""
@@ -309,4 +314,53 @@ resource "aws_instance" "web-server-instance" {
   tags = {
     Name = "web-server"
   }
+}
+
+output "server_private_ip" {
+  value = aws_instance.web-server-instance.private_ip
+}
+
+output "server_private_id" {
+  value = aws_instance.web-server-instance.id
+}
+
+
+
+
+
+
+
+
+#* Variables
+
+variable "subnet_prefix" {
+  # There is only 3 parameters
+  description = "value"
+  default = "10.0.66.0/16"
+  type = string
+  # can be any if we do not know
+  # type = string
+}
+
+#* 1. Create the VPC
+
+resource "aws_vpc" "prod-vpc-variable" {
+  cidr_block = "10.0.0.0/16"
+
+  tags = {
+    Name = "Prod"
+    }   
+}
+
+#* 2. Create a subnet
+
+resource "aws_subnet" "subnet-prod-variable" {
+  vpc_id = aws_vpc.prod-vpc-variable.id
+  cidr_block = var.subnet_prefix
+  availability_zone = "us-east-1a"
+
+    tags = {
+      Name = "prod-subnet"
+    } 
+
 }
